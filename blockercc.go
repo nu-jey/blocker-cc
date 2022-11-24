@@ -20,7 +20,7 @@ type BlockerContract struct {
 
 func (s *SmartContract) Init(ctx contractapi.TransactionContextInterface) error {
 	b_contract := BlockerContract{
-		Hash:        "lastkey",
+		Hash:        "Genesis",
 		Contractors: "Genesis",
 		Date:        "Genesis",
 	}
@@ -36,8 +36,27 @@ func (s *SmartContract) Init(ctx contractapi.TransactionContextInterface) error 
 	return nil
 }
 
-func (s *SmartContract) Getlast(ctx contractapi.TransactionContextInterface) (*BlockerContract, error) {
+func (s *SmartContract) Getlastkey(ctx contractapi.TransactionContextInterface) (*BlockerContract, error) {
 	bctJSON, err := ctx.GetStub().GetState("Genesis")
+	if err != nil {
+		return nil, fmt.Errorf("failed to read from world state: %v", err)
+	}
+
+	if bctJSON == nil {
+		return nil, fmt.Errorf("the asset genesis does not exist")
+	}
+
+	var btc BlockerContract
+	err = json.Unmarshal(bctJSON, &btc)
+	if err != nil {
+		return nil, err
+	}
+
+	return &btc, nil
+}
+
+func (s *SmartContract) Getcontract(ctx contractapi.TransactionContextInterface, keyvalue string) (*BlockerContract, error) {
+	bctJSON, err := ctx.GetStub().GetState(keyvalue)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read from world state: %v", err)
 	}
@@ -68,7 +87,7 @@ func (s *SmartContract) Conclude(ctx contractapi.TransactionContextInterface, ke
 	}
 
 	genesis_contract := BlockerContract{
-		Hash:        input_hash,
+		Hash:        keyvalue,
 		Contractors: "Genesis",
 		Date:        "Genesis",
 	}
